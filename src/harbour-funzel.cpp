@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     QQmlContext *context = view.data()->rootContext();
     Funzel funzel;
     context->setContextProperty("funzel", &funzel);
+    context->setContextProperty("device", funzel.device());
 
     view->setSource(SailfishApp::pathTo("qml/harbour-funzel.qml"));
     view->show();

@@ -87,8 +87,8 @@ Page {
             TextSwitch {
                 id: funzelSwitch
                 text: qsTr("Enable LED animation on incoming call")
-                description: qsTr("When your Gemini PDA receives a call, the backside LEDs will show an animation.")
-                enabled: funzel.isGeminiFound()
+                description: qsTr("When your device receives a call, the backside LEDs will show an animation.")
+                enabled: funzel.supportedDeviceFound()
                 onCheckedChanged: {
                     funzel.setUseAnimation(checked);
                 }
@@ -247,18 +247,18 @@ Page {
     }
 
     Rectangle {
-        id: noGeminiWarningBackground
+        id: noSupportedDeviceWarningBackground
         anchors.fill: parent
         color: "black"
         opacity: 0.8
-        visible: !funzel.isGeminiFound()
+        visible: !funzel.supportedDeviceFound()
     }
 
     SilicaFlickable {
-        id: noGeminiWarningFlickable
+        id: noSupportedDeviceWarningFlickable
         contentHeight: warningColumn.height
         anchors.fill: parent
-        visible: !funzel.isGeminiFound()
+        visible: !funzel.supportedDeviceFound()
 
         Column {
             id: warningColumn
@@ -267,7 +267,7 @@ Page {
 
             PageHeader {
                 id: warningHeader
-                title: qsTr("No Gemini PDA found!")
+                title: qsTr("No supported device found!")
             }
 
             Image {
@@ -283,7 +283,7 @@ Page {
             }
 
             Text {
-                id: textContentNoGemini
+                id: textContentNoSupportedDevice
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.horizontalCenter: parent.horizontalCenter
                 font.pixelSize: Theme.fontSizeSmall
@@ -291,7 +291,9 @@ Page {
                 linkColor: Theme.highlightColor
                 wrapMode: Text.Wrap
                 textFormat: Text.PlainText
-                text: qsTr("It seems that Funzel is not running on a Gemini PDA. As this is the only device which Funzel is supporting, this application will be rather useless on your device.")
+                //text: qsTr("It seems that Funzel is not running on a Gemini PDA. As this is the only device which Funzel is supporting, this application will be rather useless on your device.")
+                text: qsTr("It seems that Funzel is not running on a supported device. This application will be rather useless on your device.")
+                    + "\n" + qsTr("The following devies are supported: %1").arg(funzel.supportedevices).join(",")
             }
 
             Button {
@@ -300,8 +302,8 @@ Page {
                     horizontalCenter: parent.horizontalCenter
                 }
                 onClicked: {
-                    noGeminiWarningBackground.visible = false;
-                    noGeminiWarningFlickable.visible = false;
+                    noSupportedDeviceWarningBackground.visible = false;
+                    noSupportedDeviceWarningFlickable.visible = false;
                 }
             }
 

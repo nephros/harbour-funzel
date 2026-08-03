@@ -57,8 +57,18 @@ public:
     Q_INVOKABLE QString getColorId(const int &colorIndex);
     Q_INVOKABLE int getColorIndex(const QString &colorId);
 
+    Q_INVOKABLE bool supportedDeviceFound() { return isGeminiFound() || isJP2601Found(); };
     Q_INVOKABLE QVariantList leds();
+    Q_INVOKABLE QString device() {
+        if(geminiFound) return supportedDevices[0];
+        if(jp2601Found) return supportedDevices[1];
+        return QStringLiteral("Unknown");
+    };
 
+    const QStringList supportedDevices = {
+        QStringLiteral( "Gemini PDA"),
+        QStringLiteral("Jolla Phone JP2601")
+    };
 signals:
     void powerOn();
     void powerColor(const int &colorIndex);
