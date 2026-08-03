@@ -31,6 +31,19 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
+class ToHCapability : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ToHCapability(QObject *parent = nullptr);
+    QVariantList capability() const;
+signals:
+    void changed() const;
+private:
+    bool detect();
+    bool m_detected = false;
+};
+
 class Funzel : public QObject
 {
     Q_OBJECT
@@ -44,6 +57,8 @@ public:
     Q_INVOKABLE void setAnimationColor(const int &animationColor);
     Q_INVOKABLE int getAnimationColor();
     Q_INVOKABLE bool isGeminiFound();
+    Q_INVOKABLE bool isJP2601Found();
+    Q_INVOKABLE bool isToHFound();
     Q_INVOKABLE bool isContactsDbAvailable();
     Q_INVOKABLE void loadContacts();
     Q_INVOKABLE void assignAnimationColor(const QString &animationColor, const QString &contactId);
@@ -72,16 +87,21 @@ private:
     QNetworkAccessManager *networkAccessManager;
     QSettings settings;
     bool geminiFound;
+    bool jp2601Found;
+    bool tohFound;
     bool canUseContactsDb;
     QSqlDatabase database;
     QVariantMap contacts;
     QVariantMap colorAssignments;
     QVariantMap contactAssignments;
     int currentColorIndex = -1;
+    QList<ToHCapability> tohCapabilities();
+
 
     void initializeDatabase();
     void initializeContactAssignments();
     void synchronizeData();
+
 };
 
 #endif // FUNZEL_H

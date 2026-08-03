@@ -30,6 +30,10 @@ const char SETTINGS_USE_ANIMATION[] = "settings/useAnimation";
 const char SETTINGS_ANIMATION_COLOR[] = "settings/animationColor";
 const char SETTINGS_COLOR_ASSIGNMENT_PREFIX[] = "settings/colorAssignment_";
 
+const char POGO_PIN_5V[]  = "/sys/class/yft_pogo_pin/yft_pogo_pin_5v_out_state";
+const char POGO_PIN_ADC[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_adc_value";
+const char POGO_PIN_INT[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_int_state";
+
 Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "settings")
 {
     this->networkAccessManager = new QNetworkAccessManager(this);
@@ -46,6 +50,8 @@ Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "s
     } else {
         this->geminiFound = false;
     }
+    this->jp2601Found = QFile::exists(POGO_PIN_INT);
+
     initializeDatabase();
     initializeContactAssignments();
 }
@@ -121,6 +127,16 @@ int Funzel::getAnimationColor()
 bool Funzel::isGeminiFound()
 {
     return this->geminiFound;
+}
+
+bool Funzel::isJP2601Found()
+{
+    return this->jp2601Found;
+}
+
+bool Funzel::isToHFound()
+{
+    return this->tohFound;
 }
 
 bool Funzel::isContactsDbAvailable()
