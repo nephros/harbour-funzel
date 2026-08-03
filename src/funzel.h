@@ -57,6 +57,8 @@ public:
     Q_INVOKABLE QString getColorId(const int &colorIndex);
     Q_INVOKABLE int getColorIndex(const QString &colorId);
 
+    Q_INVOKABLE QVariantList leds();
+
 signals:
     void powerOn();
     void powerColor(const int &colorIndex);
@@ -66,6 +68,7 @@ signals:
     void contactAssignmentsInvalidated();
     void contactsLoaded(const QVariantList &contacts);
     void errorLoadingContacts();
+    void tohConnected(const QVariant device);
 
 public slots:
     void onIncomingCall(const QDBusMessage &dBusMessage);

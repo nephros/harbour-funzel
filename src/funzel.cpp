@@ -34,6 +34,8 @@ const char POGO_PIN_5V[]  = "/sys/class/yft_pogo_pin/yft_pogo_pin_5v_out_state";
 const char POGO_PIN_ADC[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_adc_value";
 const char POGO_PIN_INT[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_int_state";
 
+const int JP2601_LED_COUNT = 1;
+
 Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "settings")
 {
     this->networkAccessManager = new QNetworkAccessManager(this);
@@ -54,6 +56,11 @@ Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "s
 
     initializeDatabase();
     initializeContactAssignments();
+    if (this->geminiFound)
+        qInfo() << "Identified device: Gemini PDA.";
+    if (this->jp2601Found)
+        qInfo() << "Identified device: Jolla Phone 2026.";
+    leds();
 }
 
 Funzel::~Funzel()
@@ -68,37 +75,93 @@ Funzel::~Funzel()
 void Funzel::powerLed(const int &ledNumber, const int &intensityRed, const int &intensityGreen, const int &intensityBlue)
 {
     // qDebug() << "Funzel::powerLed" << ledNumber << intensityRed << intensityGreen << intensityBlue;
-    QFile ledFile("/proc/aw9120_operation");
-    if (ledNumber < 1 || ledNumber > 5) {
-        qDebug() << "Invalid LED number" << ledNumber;
-        return;
+    if (geminiFound) {
+        QFile ledFile("/proc/aw9120_operation");
+        if (ledNumber < 1 || ledNumber > 5) {
+            qDebug() << "Invalid LED number" << ledNumber;
+            return;
+        }
+        if (intensityRed < 0 || intensityRed > 3) {
+            qDebug() << "Invalid red LED intensity" << intensityRed;
+            return;
+        }
+        if (intensityGreen < 0 || intensityGreen > 3) {
+            qDebug() << "Invalid green LED intensity" << intensityGreen;
+            return;
+        }
+        if (intensityBlue < 0 || intensityBlue > 3) {
+            qDebug() << "Invalid blue LED intensity" << intensityBlue;
+            return;
+        }
+        if (ledFile.open(QIODevice::WriteOnly)) {
+            QString ledString;
+            ledString.append(QString::number(ledNumber));
+            ledString.append(" ");
+            ledString.append(QString::number(intensityRed));
+            ledString.append(" ");
+            ledString.append(QString::number(intensityGreen));
+            ledString.append(" ");
+            ledString.append(QString::number(intensityBlue));
+            ledFile.write(ledString.toUtf8());
+            ledFile.flush();
+            ledFile.close();
+        } else {
+            qDebug() << "[Funzel] Unable to acquire write access to LED";
+        }
     }
-    if (intensityRed < 0 || intensityRed > 3) {
-        qDebug() << "Invalid red LED intensity" << intensityRed;
-        return;
-    }
-    if (intensityGreen < 0 || intensityGreen > 3) {
-        qDebug() << "Invalid green LED intensity" << intensityGreen;
-        return;
-    }
-    if (intensityBlue < 0 || intensityBlue > 3) {
-        qDebug() << "Invalid blue LED intensity" << intensityBlue;
-        return;
-    }
-    if (ledFile.open(QIODevice::WriteOnly)) {
-        QString ledString;
-        ledString.append(QString::number(ledNumber));
-        ledString.append(" ");
-        ledString.append(QString::number(intensityRed));
-        ledString.append(" ");
-        ledString.append(QString::number(intensityGreen));
-        ledString.append(" ");
-        ledString.append(QString::number(intensityBlue));
-        ledFile.write(ledString.toUtf8());
-        ledFile.flush();
-        ledFile.close();
-    } else {
-        qDebug() << "[Funzel] Unable to acquire write access to LED";
+    if (jp2601Found) {
+        QFile rLedFile("/sys/class/leds/red/brightness");
+        QFile gLedFile("/sys/class/leds/green/brightness");
+        QFile bLedFile("/sys/class/leds/blue/brightness");
+        QFile rMaxLedFile("/sys/class/leds/red/max_brightness");
+        QFile gMaxLedFile("/sys/class/leds/green/max_brightness");
+        QFile bMaxLedFile("/sys/class/leds/blue/max_brightness");
+        if (ledNumber > JP2601_LED_COUNT) {
+            qDebug() << "Invalid LED number" << ledNumber;
+            return;
+        }
+        if (rLedFile.open(QIODevice::WriteOnly)) {
+            if (rMaxLedFile.open(QIODevice::ReadOnly)) {
+                int max = rMaxLedFile.readAll()[0];
+                if (intensityRed < max) {
+                    rLedFile.write(QByteArray::number(intensityRed));
+                }
+            } else {
+                qDebug() << "[Funzel] Unable to read max brightness file";
+                return;
+            }
+        } else {
+            qDebug() << "[Funzel] Unable to acquire write access to LED";
+            return;
+        }
+        if (gLedFile.open(QIODevice::WriteOnly)) {
+            if (gMaxLedFile.open(QIODevice::ReadOnly)) {
+                int max = gMaxLedFile.readAll()[0];
+                if (intensityGreen < max) {
+                    gLedFile.write(QByteArray::number(intensityGreen));
+                }
+            } else {
+                qDebug() << "[Funzel] Unable to read max brightness file";
+                return;
+            }
+        } else {
+            qDebug() << "[Funzel] Unable to acquire write access to LED";
+            return;
+        }
+        if (bLedFile.open(QIODevice::WriteOnly)) {
+            if (bMaxLedFile.open(QIODevice::ReadOnly)) {
+                int max = bMaxLedFile.readAll()[0];
+                if (intensityBlue < max) {
+                    gLedFile.write(QByteArray::number(intensityBlue));
+                }
+            } else {
+                qDebug() << "[Funzel] Unable to read max brightness file";
+                return;
+            }
+        } else {
+            qDebug() << "[Funzel] Unable to acquire write access to LED";
+            return;
+        }
     }
 }
 
@@ -383,4 +446,26 @@ void Funzel::synchronizeData()
             settings.remove(SETTINGS_COLOR_ASSIGNMENT_PREFIX + QString::number(getColorIndex(colorId)));
         }
     }
+}
+
+QVariantList Funzel::leds() {
+    QVariantList leds;
+    if (jp2601Found) {
+        QVariantMap map({
+                        { "name", "JP2601 Red LED" },
+                        { "path", "/sys/class/leds/red/"}
+        });
+        leds.append(map);
+        map = {
+                        { "name", "JP2601 Green LED" },
+                        { "path", "/sys/class/leds/green/"}
+        };
+        leds.append(map);
+        map = {
+                        { "name", "JP2601 Blue LED" },
+                        { "path", "/sys/class/leds/blue/"}
+        };
+        leds.append(map);
+    }
+    return leds;
 }
