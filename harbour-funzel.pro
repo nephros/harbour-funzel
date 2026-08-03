@@ -17,7 +17,12 @@ CONFIG += sailfishapp
 QT += core dbus sql
 
 SOURCES += src/harbour-funzel.cpp \
+    src/tohcapability.cpp \
     src/funzel.cpp
+
+HEADERS += \
+    src/tohcapability.h \
+    src/funzel.h
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128
 
@@ -51,9 +56,6 @@ CONFIG += sailfishapp_i18n
 
 TRANSLATIONS += translations/harbour-funzel-de.ts \
                 translations/harbour-funzel-ru.ts
-
-HEADERS += \
-    src/funzel.h
 
 DISTFILES += qml/harbour-funzel.qml \
     qml/cover/CoverPage.qml \

@@ -31,18 +31,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-class ToHCapability : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ToHCapability(QObject *parent = nullptr);
-    QVariantList capability() const;
-signals:
-    void changed() const;
-private:
-    bool detect();
-    bool m_detected = false;
-};
+#include "tohcapability.h"
 
 class Funzel : public QObject
 {
