@@ -51,6 +51,8 @@ Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "s
                                           this, SLOT(onCallStatusChanged(const QDBusMessage&)));
     QDBusConnection::sessionBus().connect("org.nemomobile.voicecall", "/", "org.nemomobile.voicecall.VoiceCallManager", "voiceCallsChanged",
                                           this, SLOT(onVoiceCallsChanged(const QDBusMessage&)));
+    QDBusConnection::sessionBus().connect("org.sailfishos.privacyswitch", "/privacyswitch", "org.sailfishos.privacyswitch", "privacyModeActiveChanged",
+                                          this, SLOT(onPrivacySwitchChanged(const QDBusMessage&)));
 
     if (QFile::exists("/proc/aw9120_operation")) {
         this->geminiFound = true;
@@ -387,6 +389,16 @@ void Funzel::onVoiceCallsChanged(const QDBusMessage &dBusMessage)
         powerOff();
     }
 }
+
+void Funzel::onPrivacySwitchChanged(const QDBusMessage &dBusMessage)
+{
+    qDebug() << "Funzel::onPrivacySwitchChanged" << dBusMessage;
+    bool switchState = dBusMessage.arguments().at(0).toBool();
+    if (switchState) {
+        powerLed(0, 1, 0, 0);
+    }
+}
+
 
 void Funzel::initializeDatabase()
 {

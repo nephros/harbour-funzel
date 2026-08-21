@@ -102,6 +102,7 @@ public slots:
     void onIncomingCall(const QDBusMessage &dBusMessage);
     void onCallStatusChanged(const QDBusMessage &dBusMessage);
     void onVoiceCallsChanged(const QDBusMessage &dBusMessage);
+    void onPrivacySwitchChanged(const QDBusMessage &dBusMessage);
 
 private:
     QNetworkAccessManager *networkAccessManager;
