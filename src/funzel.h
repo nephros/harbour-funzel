@@ -40,7 +40,20 @@ public:
     explicit Funzel(QObject *parent = 0);
     ~Funzel();
 
+    enum ToHDeviceType {
+        UnknownDevice,
+        LedDevice
+    };
+    enum ToHDeviceState {
+            UnknownState,
+            LedUnknown,
+            LedOn = SIGUSR1,   // 10, SIGUSR1 turns LED on  in Inari Blue
+            LedOff = SIGUSR2,  // 12, SIGUSR2 turns LED off in Inari Blue
+    };
+    Q_ENUM(ToHDeviceType);
+    Q_ENUM(ToHDeviceState);
     Q_INVOKABLE void powerLed(const int &ledNumber, const int &intensityRed, const int &intensityGreen, const int &intensityBlue);
+    Q_INVOKABLE void tohLed(bool on, const int &id);
     Q_INVOKABLE void setUseAnimation(const bool &useAnimation);
     Q_INVOKABLE bool getUseAnimation();
     Q_INVOKABLE void setAnimationColor(const int &animationColor);
@@ -64,11 +77,16 @@ public:
         if(jp2601Found) return supportedDevices[1];
         return QStringLiteral("Unknown");
     };
+    Q_INVOKABLE QStringList tohDevices() {
+        return { "TohLed" }; // TODO
+    };
+
 
     const QStringList supportedDevices = {
         QStringLiteral( "Gemini PDA"),
         QStringLiteral("Jolla Phone JP2601")
     };
+    ToHDeviceState tohState(int deviceId) const ;
 signals:
     void powerOn();
     void powerColor(const int &colorIndex);
@@ -98,7 +116,9 @@ private:
     QVariantMap contactAssignments;
     int currentColorIndex = -1;
     QList<ToHCapability> tohCapabilities();
-
+    ToHDeviceState tohLedState = ToHDeviceState::LedUnknown;
+    QMap<QString, LedPattern> ledPatterns;
+    void toggleToHDevice(const int &id, ToHDeviceState newState);
 
     void initializeDatabase();
     void initializeContactAssignments();

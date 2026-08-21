@@ -34,6 +34,11 @@ const char POGO_PIN_5V[]  = "/sys/class/yft_pogo_pin/yft_pogo_pin_5v_out_state";
 const char POGO_PIN_ADC[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_adc_value";
 const char POGO_PIN_INT[] = "/sys/class/yft_pogo_pin/yft_pogo_pin_int_state";
 
+const char DBUS_SD_MANAGER_SERVICE[]  = "org.freedesktop.systemd1";
+const char DBUS_SD_MANAGER_PATH[]     = "/org/freedesktop/systemd1";
+const char DBUS_SD_MANAGER_IFACE[]    = "org.freedesktop.systemd1.Manager";
+const char DBUS_SD_TOH_SERVICE_NAME[]  = "jolla-csd-tohd.service";
+
 const int JP2601_LED_COUNT = 1;
 
 Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "settings")
@@ -469,3 +474,36 @@ QVariantList Funzel::leds() {
     }
     return leds;
 }
+
+void Funzel::tohLed(bool on, const int &deviceId = 0) {
+    if (deviceId == 0 ) {
+        ToHDeviceState want = on ? ToHDeviceState::LedOn : ToHDeviceState::LedOff;
+        toggleToHDevice(deviceId, want);
+        return;
+    }
+    qWarning() << "Inknown device with ID" << deviceId;
+}
+
+Funzel::ToHDeviceState Funzel::tohState(int deviceId = 0) const
+{
+    if (deviceId == 0 ) {
+        return tohLedState;
+    }
+   return ToHDeviceState::UnknownState;
+}
+
+void Funzel::toggleToHDevice(const int &deviceId, ToHDeviceState newState)
+{
+    if (deviceId == 0 ) {
+        QDBusInterface tohService( DBUS_SD_MANAGER_SERVICE, DBUS_SD_MANAGER_PATH, DBUS_SD_MANAGER_IFACE, QDBusConnection::sessionBus() );
+        tohService.callWithArgumentList(QDBus::NoBlock, QStringLiteral("KillUnit"),
+                        QVariantList {
+                            QVariant(DBUS_SD_TOH_SERVICE_NAME),
+                            QVariant(QStringLiteral("main")),
+                            QVariant((int) newState) // NB: we set the signal number as the enum value!
+                        }
+                        );
+
+    }
+}
+
