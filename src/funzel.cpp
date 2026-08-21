@@ -68,6 +68,24 @@ Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "s
     if (this->jp2601Found)
         qInfo() << "Identified device: Jolla Phone 2026.";
     leds();
+
+    LedPattern pat;
+    pat.pause = -1;
+    pat.pattern.append(-1);
+
+    ledPatterns.insert("on", pat);                  // on: on is inf, pause is inf
+    ledPatterns.insert("off", { -1, { 0, -1 } });   // off: on for 0s, off for inf, pause is inf
+    ledPatterns.insert("blink_1s", { 0, { 1000, 1000 } });  // blink: on 1s, off 1s, no pause
+    // morse, repeat. dah should be 3x dit. character gap should be dit, letter gap dah.
+    int dit = 1000; int dah = dit*3;
+    int cpause = dit; int lpause = dah; int wpause = dit*7;
+    ledPatterns.insert("sos", { wpause, {
+                                  dit, cpause, dit, cpause, dit, lpause,
+                                  dah, cpause, dah, cpause, dah, lpause,
+                                  dit, cpause, dit, cpause, dit, lpause,
+                                  }
+                               });
+
 }
 
 Funzel::~Funzel()
@@ -517,5 +535,14 @@ void Funzel::toggleToHDevice(const int &deviceId, ToHDeviceState newState)
                         );
 
     }
+}
+
+void Funzel::addLedPattern(const QString &name, const QVector<int>& pattern, const int &pause = -1)
+{
+    LedPattern data;
+    data.pause = pause;
+    data.pattern = pattern;
+    ledPatterns.insert(name, data);
+
 }
 

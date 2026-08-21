@@ -33,6 +33,17 @@
 
 #include "tohcapability.h"
 
+#include <signal.h>
+
+struct LedPattern
+{
+    int pause = -1;       // ms to pause at the end of the pattern, -1 for ininifty (one-off pattern)
+    QVector<int> pattern; // sequence of ints, each specifying ms on, ms off, -1 for infinity
+
+};
+
+Q_DECLARE_METATYPE(LedPattern);
+
 class Funzel : public QObject
 {
     Q_OBJECT
@@ -69,6 +80,8 @@ public:
     Q_INVOKABLE QString getContactDisplayName(const QString &contactId);
     Q_INVOKABLE QString getColorId(const int &colorIndex);
     Q_INVOKABLE int getColorIndex(const QString &colorId);
+
+    Q_INVOKABLE void addLedPattern(const QString &name, const QVector<int>& pattern, const int &pause);
 
     Q_INVOKABLE bool supportedDeviceFound() { return isGeminiFound() || isJP2601Found(); };
     Q_INVOKABLE QVariantList leds();
