@@ -41,7 +41,8 @@ const char DBUS_SD_TOH_SERVICE_NAME[]  = "jolla-csd-tohd.service";
 
 const int JP2601_LED_COUNT = 1;
 
-Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "settings")
+Funzel::Funzel(QObject *parent) : QObject(parent),
+        settings("harbour-funzel", "settings")
 {
     this->networkAccessManager = new QNetworkAccessManager(this);
 
@@ -54,20 +55,15 @@ Funzel::Funzel(QObject *parent) : QObject(parent), settings("harbour-funzel", "s
     QDBusConnection::sessionBus().connect("org.sailfishos.privacyswitch", "/privacyswitch", "org.sailfishos.privacyswitch", "privacyModeActiveChanged",
                                           this, SLOT(onPrivacySwitchChanged(const QDBusMessage&)));
 
-    if (QFile::exists("/proc/aw9120_operation")) {
-        this->geminiFound = true;
-    } else {
-        this->geminiFound = false;
-    }
-    this->jp2601Found = QFile::exists(POGO_PIN_INT);
-
+/*
+*/
     initializeDatabase();
     initializeContactAssignments();
-    if (this->geminiFound)
-        qInfo() << "Identified device: Gemini PDA.";
-    if (this->jp2601Found)
-        qInfo() << "Identified device: Jolla Phone 2026.";
-    leds();
+    foundDevice = new FunzelDeviceInfo();
+    if (!identifyDevice())
+        qCritical() << "Failed to identify this device!";
+    else
+        analyzeDevices();
 
     LedPattern pat;
     pat.pause = -1;
@@ -100,7 +96,7 @@ Funzel::~Funzel()
 void Funzel::powerLed(const int &ledNumber, const int &intensityRed, const int &intensityGreen, const int &intensityBlue)
 {
     // qDebug() << "Funzel::powerLed" << ledNumber << intensityRed << intensityGreen << intensityBlue;
-    if (geminiFound) {
+    if (foundDevice->device == Device::GeminiPDA) {
         QFile ledFile("/proc/aw9120_operation");
         if (ledNumber < 1 || ledNumber > 5) {
             qDebug() << "Invalid LED number" << ledNumber;
@@ -131,10 +127,9 @@ void Funzel::powerLed(const int &ledNumber, const int &intensityRed, const int &
             ledFile.flush();
             ledFile.close();
         } else {
-            qDebug() << "[Funzel] Unable to acquire write access to LED";
+            qDebug() << "[Funzel] Unable to acquire write access to LED at" << ledFile.fileName();
         }
-    }
-    if (jp2601Found) {
+    } else if (foundDevice->device == Device::JollaPhone2026) {
         QFile rLedFile("/sys/class/leds/red/brightness");
         QFile gLedFile("/sys/class/leds/green/brightness");
         QFile bLedFile("/sys/class/leds/blue/brightness");
@@ -142,7 +137,7 @@ void Funzel::powerLed(const int &ledNumber, const int &intensityRed, const int &
         QFile gMaxLedFile("/sys/class/leds/green/max_brightness");
         QFile bMaxLedFile("/sys/class/leds/blue/max_brightness");
         if (ledNumber > JP2601_LED_COUNT) {
-            qDebug() << "Invalid LED number" << ledNumber;
+            //qDebug() << "Invalid LED number" << ledNumber;
             return;
         }
         if (rLedFile.open(QIODevice::WriteOnly)) {
@@ -210,16 +205,6 @@ void Funzel::setAnimationColor(const int &animationColor)
 int Funzel::getAnimationColor()
 {
     return settings.value(SETTINGS_ANIMATION_COLOR, 0).toInt();
-}
-
-bool Funzel::isGeminiFound()
-{
-    return this->geminiFound;
-}
-
-bool Funzel::isJP2601Found()
-{
-    return this->jp2601Found;
 }
 
 bool Funzel::isToHFound()
@@ -483,28 +468,6 @@ void Funzel::synchronizeData()
     }
 }
 
-QVariantList Funzel::leds() {
-    QVariantList leds;
-    if (jp2601Found) {
-        QVariantMap map({
-                        { "name", "JP2601 Red LED" },
-                        { "path", "/sys/class/leds/red/"}
-        });
-        leds.append(map);
-        map = {
-                        { "name", "JP2601 Green LED" },
-                        { "path", "/sys/class/leds/green/"}
-        };
-        leds.append(map);
-        map = {
-                        { "name", "JP2601 Blue LED" },
-                        { "path", "/sys/class/leds/blue/"}
-        };
-        leds.append(map);
-    }
-    return leds;
-}
-
 void Funzel::tohLed(bool on, const int &deviceId = 0) {
     if (deviceId == 0 ) {
         ToHDeviceState want = on ? ToHDeviceState::LedOn : ToHDeviceState::LedOff;
@@ -543,6 +506,69 @@ void Funzel::addLedPattern(const QString &name, const QVector<int>& pattern, con
     data.pause = pause;
     data.pattern = pattern;
     ledPatterns.insert(name, data);
-
 }
 
+bool Funzel::identifyDevice() {
+    qDebug() << "Funzel::identifyDevice()";
+    QFile file;
+    if (QFile::exists(QStringLiteral("/usr/lib/hw-release")))
+        file.setFileName(QStringLiteral("/usr/lib/hw-release"));
+    else if (QFile::exists(QStringLiteral("/etc/hw-release")))
+        file.setFileName(QStringLiteral("/etc/hw-release"));
+    else {
+        qCritical() << "Could not determine hw-release file!";
+        return false;
+    }
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+
+    while (!file.atEnd()) {
+        QString line = QString::fromLocal8Bit(file.readLine());
+        if (line.startsWith("ID=")) {
+            QString id = line.split("=").last();
+            id.chop(1); // newline
+            auto v = supportedDevices.value(id);
+            if (v.id.isEmpty() || v.name == "unknown") {
+                qWarning() << "ID not found in default device list!";
+                return false;
+            }
+            foundDevice = new FunzelDeviceInfo(v);
+            return true;
+        }
+    }
+    return false;
+}
+
+void Funzel::analyzeDevices() {
+    qDebug() << "Funzel::analyzeDevices()";
+    QVariantList* leds = new QVariantList();
+    if (foundDevice->device == Device::JollaPhone2026) {
+        QVariantMap map({
+                        { "name", "JP2601 Red LED" },
+                        { "path", "/sys/class/leds/red/"}
+        });
+        leds->append(map);
+        map = {
+                        { "name", "JP2601 Green LED" },
+                        { "path", "/sys/class/leds/green/"}
+        };
+        leds->append(map);
+        map = {
+                        { "name", "JP2601 Blue LED" },
+                        { "path", "/sys/class/leds/blue/"}
+        };
+        leds->append(map);
+    }
+    foundDevice->leds = leds;
+}
+
+
+QStringList Funzel::listSupportedDevices() const
+{
+    QStringList list;
+    for (auto val : supportedDevices) {
+        list.append(val.name);
+    }
+    return list;
+}

@@ -34,7 +34,7 @@ CoverBackground {
     }
 
     CoverActionList {
-        enabled: funzel.isGeminiFound()
+        enabled: funzel.deviceInfo.device == funzel.Device.GeminiPDA
         CoverAction {
             iconSource: isSwitchedOn ? "image://theme/icon-cover-mute" : "image://theme/icon-cover-unmute"
             onTriggered: {

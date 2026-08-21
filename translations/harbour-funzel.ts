@@ -122,7 +122,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>When your Gemini PDA receives a call, the backside LEDs will show an animation.</source>
+        <source>When your device receives a call, the backside LEDs will show an animation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default Animation Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -154,23 +158,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Rainbow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Test Animation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>No Gemini PDA found!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>It seems that Funzel is not running on a Gemini PDA. As this is the only device which Funzel is supporting, this application will be rather useless on your device.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Default Animation Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -182,7 +174,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Rainbow</source>
+        <source>Enable ToH LED animation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No supported device found!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It seems that Funzel is not running on a supported device. This application will be rather useless on your device.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The following devices are supported: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

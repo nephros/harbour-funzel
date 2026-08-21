@@ -31,6 +31,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
+#include "device.h"
 #include "tohcapability.h"
 
 #include <signal.h>
@@ -51,17 +52,12 @@ public:
     explicit Funzel(QObject *parent = 0);
     ~Funzel();
 
-    enum ToHDeviceType {
-        UnknownDevice,
-        LedDevice
-    };
     enum ToHDeviceState {
             UnknownState,
             LedUnknown,
             LedOn = SIGUSR1,   // 10, SIGUSR1 turns LED on  in Inari Blue
             LedOff = SIGUSR2,  // 12, SIGUSR2 turns LED off in Inari Blue
     };
-    Q_ENUM(ToHDeviceType);
     Q_ENUM(ToHDeviceState);
     Q_INVOKABLE void powerLed(const int &ledNumber, const int &intensityRed, const int &intensityGreen, const int &intensityBlue);
     Q_INVOKABLE void tohLed(bool on, const int &id);
@@ -69,8 +65,6 @@ public:
     Q_INVOKABLE bool getUseAnimation();
     Q_INVOKABLE void setAnimationColor(const int &animationColor);
     Q_INVOKABLE int getAnimationColor();
-    Q_INVOKABLE bool isGeminiFound();
-    Q_INVOKABLE bool isJP2601Found();
     Q_INVOKABLE bool isToHFound();
     Q_INVOKABLE bool isContactsDbAvailable();
     Q_INVOKABLE void loadContacts();
@@ -80,26 +74,24 @@ public:
     Q_INVOKABLE QString getContactDisplayName(const QString &contactId);
     Q_INVOKABLE QString getColorId(const int &colorIndex);
     Q_INVOKABLE int getColorIndex(const QString &colorId);
-
     Q_INVOKABLE void addLedPattern(const QString &name, const QVector<int>& pattern, const int &pause);
 
-    Q_INVOKABLE bool supportedDeviceFound() { return isGeminiFound() || isJP2601Found(); };
-    Q_INVOKABLE QVariantList leds();
-    Q_INVOKABLE QString device() {
-        if(geminiFound) return supportedDevices[0];
-        if(jp2601Found) return supportedDevices[1];
-        return QStringLiteral("Unknown");
-    };
-    Q_INVOKABLE QStringList tohDevices() {
-        return { "TohLed" }; // TODO
-    };
+    Q_PROPERTY(bool supportedDeviceFound READ supportedDeviceFound NOTIFY deviceChanged);
+    Q_PROPERTY(QVariant deviceInfo READ getDeviceInfo NOTIFY deviceChanged);
+    Q_PROPERTY(QStringList supportedDevices READ listSupportedDevices CONSTANT);
 
-
-    const QStringList supportedDevices = {
-        QStringLiteral( "Gemini PDA"),
-        QStringLiteral("Jolla Phone JP2601")
-    };
     ToHDeviceState tohState(int deviceId) const ;
+
+    QVariant getDeviceInfo() {
+            if (foundDevice->isValid())
+                return QVariant::fromValue(foundDevice);
+            else
+                return QVariant::fromValue(FunzelDeviceInfo());
+    };
+//    FunzelDeviceInfo* deviceInfo() { return foundDevice; };
+    bool supportedDeviceFound() { return foundDevice->device != Device::Unknown; };
+    QStringList listSupportedDevices() const;
+
 signals:
     void powerOn();
     void powerColor(const int &colorIndex);
@@ -109,6 +101,7 @@ signals:
     void contactAssignmentsInvalidated();
     void contactsLoaded(const QVariantList &contacts);
     void errorLoadingContacts();
+    void deviceChanged();
     void tohConnected(const QVariant device);
 
 public slots:
@@ -120,8 +113,7 @@ public slots:
 private:
     QNetworkAccessManager *networkAccessManager;
     QSettings settings;
-    bool geminiFound;
-    bool jp2601Found;
+    FunzelDeviceInfo* foundDevice;
     bool tohFound;
     bool canUseContactsDb;
     QSqlDatabase database;
@@ -134,6 +126,8 @@ private:
     QMap<QString, LedPattern> ledPatterns;
     void toggleToHDevice(const int &id, ToHDeviceState newState);
 
+    bool identifyDevice();
+    void analyzeDevices();
     void initializeDatabase();
     void initializeContactAssignments();
     void synchronizeData();

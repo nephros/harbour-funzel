@@ -111,79 +111,87 @@
     <name>OverviewPage</name>
     <message>
         <source>About Funzel</source>
-        <translation>Über Funzel</translation>
+        <translation type="unfinished">Über Funzel</translation>
     </message>
     <message>
         <source>Welcome to Funzel</source>
-        <translation>Willkommen bei Funzel</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Enable LED animation on incoming call</source>
-        <translation>LED-Animation bei eingehendem Anruf einschalten</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>When your Gemini PDA receives a call, the backside LEDs will show an animation.</source>
-        <translation>Wenn Ihr Gemini PDA einen Anruf erhält, werden die rückwärtigen LEDs eine Animation anzeigen.</translation>
-    </message>
-    <message>
-        <source>Red</source>
-        <translation>Rot</translation>
-    </message>
-    <message>
-        <source>Green</source>
-        <translation>Grün</translation>
-    </message>
-    <message>
-        <source>Blue</source>
-        <translation>Blau</translation>
-    </message>
-    <message>
-        <source>Yellow</source>
-        <translation>Gelb</translation>
-    </message>
-    <message>
-        <source>Light Blue</source>
-        <translation>Hellblau</translation>
-    </message>
-    <message>
-        <source>Purple</source>
-        <translation>Violett</translation>
-    </message>
-    <message>
-        <source>White</source>
-        <translation>Weiß</translation>
-    </message>
-    <message>
-        <source>Test Animation</source>
-        <translation>Animation testen</translation>
-    </message>
-    <message>
-        <source>No Gemini PDA found!</source>
-        <translation>Kein Gemini PDA gefunden!</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
-    <message>
-        <source>It seems that Funzel is not running on a Gemini PDA. As this is the only device which Funzel is supporting, this application will be rather useless on your device.</source>
-        <translation>Es scheint, dass Funzel nicht auf einem Gemini PDA läuft. Da dies das einzige Gerät ist, welches Funzel unterstützt, ist diese Anwendung auf Ihrem Gerät eher nutzlos.</translation>
+        <source>When your device receives a call, the backside LEDs will show an animation.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Default Animation Color</source>
-        <translation>Standard-Animationsfarbe</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Contact-specific Animation Color</source>
-        <translation>Kontaktspezifische Animationsfarbe</translation>
+        <source>Red</source>
+        <translation type="unfinished">Rot</translation>
     </message>
     <message>
-        <source>Assign Color to Contact</source>
-        <translation>Farbe einem Kontakt zuweisen</translation>
+        <source>Green</source>
+        <translation type="unfinished">Grün</translation>
+    </message>
+    <message>
+        <source>Blue</source>
+        <translation type="unfinished">Blau</translation>
+    </message>
+    <message>
+        <source>Yellow</source>
+        <translation type="unfinished">Gelb</translation>
+    </message>
+    <message>
+        <source>Light Blue</source>
+        <translation type="unfinished">Hellblau</translation>
+    </message>
+    <message>
+        <source>Purple</source>
+        <translation type="unfinished">Violett</translation>
+    </message>
+    <message>
+        <source>White</source>
+        <translation type="unfinished">Weiß</translation>
     </message>
     <message>
         <source>Rainbow</source>
-        <translation>Regenbogen</translation>
+        <translation type="unfinished">Regenbogen</translation>
+    </message>
+    <message>
+        <source>Test Animation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contact-specific Animation Color</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Assign Color to Contact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable ToH LED animation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No supported device found!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It seems that Funzel is not running on a supported device. This application will be rather useless on your device.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The following devices are supported: %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -28,6 +28,21 @@ Page {
     allowedOrientations: Orientation.All
     property variant colorAssignments
 
+    states: [
+        State { name: "gemini"; when: funzel.deviceInfo.device == Device.GeminiPDA
+        },
+        State { name: "jp2026"; when: funzel.deviceInfo.device == Device.JollaPhone2026
+              PropertyChanges { target: inariSwitch; visible: true }
+        },
+        State { name: "unsupported"; when: funzel.deviceInfo.device == Device.Invalid
+                                            || funzel.deviceInfo.device == Device.Unknown
+                                            || !funzel.supportedDeviceFound
+              PropertyChanges { target: noSupportedDeviceWarningFlickable; visible: true }
+              PropertyChanges { target: noSupportedDeviceWarningBackground; visible: true }
+              PropertyChanges { target: funzelSwitch; enabled: false }
+        }
+    ]
+
     TheHoffModel {
         id: hoffModel
     }
@@ -80,15 +95,15 @@ Page {
 
             width: overviewPage.width
             spacing: Theme.paddingMedium
-            PageHeader {
+            PageHeader { id: header
                 title: qsTr("Welcome to Funzel")
+                description: funzel.deviceInfo.name
             }
 
             TextSwitch {
                 id: funzelSwitch
                 text: qsTr("Enable LED animation on incoming call")
                 description: qsTr("When your device receives a call, the backside LEDs will show an animation.")
-                enabled: funzel.supportedDeviceFound()
                 onCheckedChanged: {
                     funzel.setUseAnimation(checked);
                 }
@@ -243,6 +258,17 @@ Page {
                 delegate: AssignedContactsListItem {}
             }
 
+            /* Jolla Phone */ 
+            TextSwitch {
+                id: inariSwitch
+                visible: false
+                text: qsTr("Enable ToH LED animation")
+                //description: qsTr("When your device receives a call, the backside LEDs will show an animation.")
+                onCheckedChanged: {
+                    funzel.tohLed(checked, 0);
+                }
+            }
+
         }
     }
 
@@ -251,14 +277,14 @@ Page {
         anchors.fill: parent
         color: "black"
         opacity: 0.8
-        visible: !funzel.supportedDeviceFound()
+        visible: false
     }
 
     SilicaFlickable {
         id: noSupportedDeviceWarningFlickable
         contentHeight: warningColumn.height
         anchors.fill: parent
-        visible: !funzel.supportedDeviceFound()
+        visible: false
 
         Column {
             id: warningColumn
@@ -293,7 +319,7 @@ Page {
                 textFormat: Text.PlainText
                 //text: qsTr("It seems that Funzel is not running on a Gemini PDA. As this is the only device which Funzel is supporting, this application will be rather useless on your device.")
                 text: qsTr("It seems that Funzel is not running on a supported device. This application will be rather useless on your device.")
-                    + "\n" + qsTr("The following devies are supported: %1").arg(funzel.supportedevices).join(",")
+                    + "\n" + qsTr("The following devices are supported: %1").arg(funzel.listSupporteDevices).join(",")
             }
 
             Button {

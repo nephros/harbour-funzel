@@ -22,6 +22,7 @@ SOURCES += src/harbour-funzel.cpp \
 
 HEADERS += \
     src/tohcapability.h \
+    src/device.h \
     src/funzel.h
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128
